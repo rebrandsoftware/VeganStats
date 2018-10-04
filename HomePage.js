@@ -120,7 +120,7 @@ export default class HomePage extends Component<{}> {
 
   componentDidMount() {
     AsyncStorage.getItem("date").then((value) => {
-        console.log("date from AsyncStorage: " + value);
+        //console.log("date from AsyncStorage: " + value);
         if (value) {
           this.setState({"date": value});
           this._onDateChanged(value);
@@ -140,19 +140,19 @@ export default class HomePage extends Component<{}> {
   );
 
   _onPressItem = (index) => {
-    console.log("Pressed " + index);
+    //console.log("Pressed " + index);
 
   };
 
   _onDateChanged = (date) => {
-    console.log("Date changed " + date);
+    //console.log("Date changed " + date);
     if (!date) {
       date = this.state.date;
-      console.log("using saved date: " + date);
+      //console.log("using saved date: " + date);
     }
 
     var seconds = secondsFromStartDate(date);
-    console.log("seconds: " + seconds);
+    //console.log("seconds: " + seconds);
     var stats = statsFromSeconds(seconds);
     this.setState({ date: date });
     this.setState({ calculated: true });
@@ -163,10 +163,10 @@ export default class HomePage extends Component<{}> {
     //await AsyncStorage.setItem('date', date);
     var timeoutId;
     if (this.state.timeoutId) {
-      console.log("timeoutId: " + this.state.timeoutId);
+      //console.log("timeoutId: " + this.state.timeoutId);
       clearTimeout(this.state.timeoutId);
       this.setState({ timeoutId: null});
-      console.log("cleared timeout");
+      //console.log("cleared timeout");
     }
 
     timeoutId = setTimeout(this._onDateChanged, 60000);
@@ -174,8 +174,8 @@ export default class HomePage extends Component<{}> {
   };
 
   _bannerError = (error) => {
-    console.log("Error");
-    console.log(error);
+    //console.log("Error");
+    //console.log(error);
   };
 
 
