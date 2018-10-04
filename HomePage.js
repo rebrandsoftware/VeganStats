@@ -1,11 +1,34 @@
 'use strict';
 
 import React, {Component} from 'react';
-import { AsyncStorage, Button, FlatList, Image, ScrollView, StyleSheet, Text, TouchableHighlight, TouchableOpacity, View } from 'react-native';
+import { Alert, AsyncStorage, Button, FlatList, Image, ScrollView, StyleSheet, Text, TouchableHighlight, TouchableOpacity, View, Platform } from 'react-native';
 import { StackNavigator } from 'react-navigation';
 import DatePicker from 'react-native-datepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import RatingRequester from 'rn-rating-requester';
 
+const RatingOptions = {
+    enjoyingMessage: "Are you enjoying this app?",
+    enjoyingActions: {
+      accept: "Yes, I love it!",
+      decline: "No, thanks.",
+    },
+    callbacks: {
+      notEnjoyingApp: doNotEnjoyingApp,
+    },
+    title: "Help With A Review?",
+    message: "If you have a moment to leave a positive review for this free app it would be very much appreciated!",
+    actionLabels: {
+      decline: "Never",
+      delay: "Later",
+      accept: "Review Now"
+    },
+    eventsUntilPrompt: 3,
+    daysBeforeReminding: 3,
+    debug: false,
+  }
+
+const RatingTracker = new RatingRequester("1438134503", "com.rebrandsoftware.veganstats", RatingOptions);
 
 class ListItem extends React.PureComponent {
   _onPress = () => {
@@ -71,6 +94,17 @@ const NotificationsButton = (props) => {
   );
 };
 
+function doNotEnjoyingApp() {
+  Alert.alert(
+    'Sorry to hear that!',
+    'Please email me directly at mike@rebrandsoftware.com if you need help or have feedback.',
+    [
+        {text: 'OK', onPress: () => console.log('OK Pressed')},
+    ],
+    { cancelable: false }
+  )
+}
+
 function statsFromSeconds(seconds) {
   var perDayArray = [
     { key:'water', desc:'Gallons of Water', icon:'cup-water', color:'#00F', value:1100},
@@ -119,6 +153,7 @@ export default class HomePage extends Component<{}> {
   };
 
   componentDidMount() {
+
     AsyncStorage.getItem("date").then((value) => {
         //console.log("date from AsyncStorage: " + value);
         if (value) {
@@ -127,7 +162,26 @@ export default class HomePage extends Component<{}> {
         }
     }).done();
 
+    //each time the user opens the app for 15 seconds, increment the RatingRequestor
+    setTimeout(
+      () => RatingTracker.handlePositiveEvent(function(didAppear, userDecision) {
+    		if (didAppear) {
+    			switch(userDecision)
+    			{
+    				case 'decline': console.log('User declined to rate'); break;
+    				case 'delay'  : console.log('User delayed rating, will be asked later'); break;
+    				case 'accept' : console.log('User accepted invitation to rate, redirected to app store'); break;
+    			}
+    		} else {
+    			console.log('Request popup did not pop up. May appear on future positive events.');
+    		}
+    	}),
+      15000
+    )
+
   };
+
+
 
   _keyExtractor = item => item.key;
 
@@ -171,6 +225,7 @@ export default class HomePage extends Component<{}> {
 
     timeoutId = setTimeout(this._onDateChanged, 60000);
     this.setState({ timeoutId: timeoutId });
+
   };
 
   _bannerError = (error) => {
