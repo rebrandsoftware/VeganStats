@@ -292,33 +292,51 @@ export default class NotificationsPage extends Component<{}> {
 
     //first, clear any old notifications so we don't get dupliates
     NotificationsIOS.cancelAllLocalNotifications();
+    if (date) {
+      if (date !== "") {
+        futureStats(stats, date, function(notificationArray) {
+          var i;
+          var l = notificationArray.length;
+          var notification;
 
-    futureStats(stats, date, function(notificationArray) {
-      var i;
-      var l = notificationArray.length;
-      var notification;
-
-      for (i=0;i<l;i++) {
-          notification = notificationArray[i];
-          let localNotification = NotificationsIOS.localNotification({
-            fireDate: notification.fireDate,
-            alertBody: notification.desc,
-            alertTitle: notification.title,
-            soundName: "chime.aiff",
-              silent: false,
-            category: "ACHIEVEMENT",
-            userInfo: { }
-          });
+          for (i=0;i<l;i++) {
+              notification = notificationArray[i];
+              let localNotification = NotificationsIOS.localNotification({
+                fireDate: notification.fireDate,
+                alertBody: notification.desc,
+                alertTitle: notification.title,
+                soundName: "chime.aiff",
+                  silent: false,
+                category: "ACHIEVEMENT",
+                userInfo: { }
+              });
+          }
+          Alert.alert(
+            'Notifications Enabled',
+            'You can disable these notifications at any time.',
+            [
+                {text: 'OK', onPress: () => console.log('OK Pressed')},
+            ],
+            { cancelable: false }
+          )
+        });
+      } else {
+        this._warnAboutDate();
       }
-      Alert.alert(
-        'Notifications Enabled',
-        'You can disable these notifications at any time.',
-        [
-            {text: 'OK', onPress: () => console.log('OK Pressed')},
-        ],
-        { cancelable: false }
-      )
-    });
+    } else {
+      this._warnAboutDate();
+    }
+  }
+
+  _warnAboutDate() {
+    Alert.alert(
+      'Choose a date first',
+      'Please enter the date you went vegan before enabling notifications',
+      [
+          {text: 'OK', onPress: () => console.log('OK Pressed')},
+      ],
+      { cancelable: false }
+    )
   }
 
   _doNotificationsOff() {
