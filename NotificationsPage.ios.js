@@ -3,26 +3,8 @@
 'use strict';
 
 import React, {Component} from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
-
-var PushNotification = require('react-native-push-notification');
-
-PushNotification.configure({
-    // (required) Called when a remote or local notification is opened or received
-    onNotification: function(notification) {
-        console.log( 'NOTIFICATION:', notification );
-    },
-    // Should the initial notification be popped automatically
-    // default: true
-    popInitialNotification: true,
-
-    /**
-      * (optional) default: true
-      * - Specified if permissions (ios) and token (android and ios) will requested or not,
-      * - if not, you must call PushNotificationsHandler.requestPermissions() later
-      */
-    requestPermissions: false,
-});
+import { Alert, StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import NotificationsIOS, { NotificationAction, NotificationCategory } from 'react-native-notifications';
 
 const numberWithCommas = (x) => {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -141,8 +123,6 @@ function addToNotificationArray(notificationArray, nKey, nTitle, nDesc, signific
   var targetDate;
   var i;
   var newDesc;
-  var smallIcon = "ic_" + item.icon;
-
   for (i=0; i<notificationCount; i++) {
     targetValue = targetValue + significant; //increase by each significant amount
     //find the date when the person will reach the target
@@ -150,7 +130,7 @@ function addToNotificationArray(notificationArray, nKey, nTitle, nDesc, signific
     //set a notification
     if (targetDate) {
         newDesc = nDesc.replace("[#]", numberWithCommas(targetValue));
-        notificationArray.push({key: nKey + i, title: nTitle, desc: newDesc, smallIcon: smallIcon, fireDate: targetDate});
+        notificationArray.push({key: nKey + i, title: nTitle, desc: newDesc, fireDate: targetDate});
     }
   }
   callback(notificationArray);
@@ -163,7 +143,6 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
   var newDesc;
   var startDate = new Date(startDateSQL);
   var newDate;
-  var smallIcon;
   startDate.setDate(startDate.getDate() + 1); //sql seems to lose a day
   console.log("startDate: ");
   console.log(startDate);
@@ -175,10 +154,10 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
   }
 
   var iAdded =0;
-  var addIt = function(nKey, nTitle, newDesc, smallIcon, fireDate, callback) {
+  var addIt = function(nKey, nTitle, newDesc, fireDate, callback) {
     console.log("fireDate:");
     console.log(fireDate);
-    notificationArray.push({key: nKey + i, title: nTitle, desc: newDesc, smallIcon: smallIcon, fireDate: fireDate});
+    notificationArray.push({key: nKey + i, title: nTitle, desc: newDesc, fireDate: fireDate});
     callback();
   }
 
@@ -188,19 +167,15 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
     switch(nType) {
       case "Days":
         newDate.setDate(startDate.getDate() + (i + 1));
-        smallIcon = "ic_calendar";
         break;
       case "Weeks":
         newDate.setDate(startDate.getDate() + ((i + 1) * 7));
-        smallIcon = "ic_calendar";
         break;
       case "Months":
         newDate.setMonth(startDate.getMonth() + (i + 1));
-        smallIcon = "ic_calendar";
         break;
       case "Years":
         newDate.setFullYear(startDate.getFullYear() + (i + 1));
-        smallIcon = "ic_cake";
         break;
     }
 
@@ -212,7 +187,7 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
       newDesc = newDesc.replace("s!", "!");
     }
 
-    addIt(nKey, nTitle, newDesc, smallIcon, newDate, function() {
+    addIt(nKey, nTitle, newDesc, newDate, function() {
       iAdded ++;
       console.log(iAdded);
       if (iAdded === nCount) {
@@ -260,77 +235,90 @@ export default class NotificationsPage extends Component<{}> {
       date: navigation.getParam('date', ''),
       stats: navigation.getParam('stats'),
     };
+
+    NotificationsIOS.addEventListener('remoteNotificationsRegistered', this.onPushRegistered.bind(this));
+
+
+    NotificationsIOS.consumeBackgroundQueue();
+
+    NotificationsIOS.addEventListener('pushKitRegistered', this.onPushKitRegistered.bind(this));
+    NotificationsIOS.registerPushKit();
+
+    NotificationsIOS.addEventListener('notificationReceivedForeground', this.onNotificationReceivedForeground.bind(this));
+    NotificationsIOS.addEventListener('notificationReceivedBackground', this.onNotificationReceivedBackground.bind(this));
+    NotificationsIOS.addEventListener('notificationOpened', this.onNotificationOpened.bind(this));
   }
 
-  _doCancelNotifications(callback) {
-    //this used to iterate through notifications before I realized there was a cancelAll function
-    //so the callback is legacy
-    PushNotification.cancelAllLocalNotifications();
-    callback();
+  onPushRegistered(deviceToken) {
+    //console.log("Device Token Received: " + deviceToken);
   }
 
+  onPushKitRegistered(deviceToken) {
+    //console.log("PushKit Token Received: " + deviceToken);
+  }
+
+  onNotificationReceivedForeground(notification) {
+    //console.log("Notification Received Foreground: " + JSON.stringify(notification));
+  }
+
+  onNotificationReceivedBackground(notification) {
+    NotificationsIOS.log("Notification Received Background: " + JSON.stringify(notification));
+
+    let localNotification = NotificationsIOS.localNotification({
+      alertBody: "Received background notificiation!",
+      alertTitle: "Local Notification Title",
+      alertAction: "Click here to open",
+      soundName: "chime.aiff",
+      category: "SOME_CATEGORY",
+      userInfo: notification.getData()
+    });
+
+    // if you want to fire the local notification 10 seconds later,
+    // add the following line to the notification payload:
+    //      fireDate: new Date(Date.now() + (10 * 1000)).toISOString()
+
+    // NotificationsIOS.backgroundTimeRemaining(time => NotificationsIOS.log("remaining background time: " + time));
+
+    // NotificationsIOS.cancelLocalNotification(localNotification);
+  }
+
+  onNotificationOpened(notification) {
+    //console.log("Notification Opened: " + JSON.stringify(notification));
+  }
 
   _doNotifications(stats, date) {
     //console.log("do notifications");
-    //first, clear any old notifications so we don't get dupliates
+    NotificationsIOS.requestPermissions();
 
+    //first, clear any old notifications so we don't get dupliates
+    NotificationsIOS.cancelAllLocalNotifications();
     if (date) {
       if (date !== "") {
-        this._doCancelNotifications(function() {
-          futureStats(stats, date, function(notificationArray) {
-            //now we should have an array of notifications
-            var i;
-            var l = notificationArray.length;
-            var notification;
+        futureStats(stats, date, function(notificationArray) {
+          var i;
+          var l = notificationArray.length;
+          var notification;
 
-            for (i=0;i<l;i++) {
-                notification = notificationArray[i];
-                PushNotification.localNotificationSchedule({
-                    /* Android Only Properties */
-                    id: i.toString, // (optional) Valid unique 32 bit integer specified as string. default: Autogenerated Unique ID
-                    //ticker: "My Notification Ticker", // (optional)
-                    //autoCancel: true, // (optional) default: true
-                    //largeIcon: "ic_launcher", // (optional) default: "ic_launcher"
-                    smallIcon: smallIcon, // (optional) default: "ic_notification" with fallback for "ic_launcher"
-                    //bigText: , // (optional) default: "message" prop
-                    //subText: "This is a subText", // (optional) default: none
-                    //color: "red", // (optional) default: system default
-                    //vibrate: true, // (optional) default: true
-                    //vibration: 300, // vibration length in milliseconds, ignored if vibrate=false, default: 1000
-                    //tag: 'some_tag', // (optional) add tag to message
-                    //group: "group", // (optional) add group to message
-                    //ongoing: false, // (optional) set whether this is an "ongoing" notification
-                    //priority: "high", // (optional) set notification priority, default: high
-                    //visibility: "private", // (optional) set notification visibility, default: private
-                    //importance: "high", // (optional) set notification importance, default: high
-
-                    /* iOS only properties */
-                    //alertAction: // (optional) default: view
-                    //category: // (optional) default: null
-                    userInfo: { id: i.toString },// (optional) default: null (object containing additional notification data)
-
-                    /* iOS and Android properties */
-                    title: notification.title, // (optional)
-                    message: notification.desc, // (required)
-                    playSound: true, // (optional) default: true
-                    soundName: 'default', // (optional) Sound to play when the notification is shown. Value of 'default' plays the default sound. It can be set to a custom sound such as 'android.resource://com.xyz/raw/my_sound'. It will look for the 'my_sound' audio file in 'res/raw' directory and play it. default: 'default' (default sound is played)
-                    //number: '10', // (optional) Valid 32 bit integer specified as string. default: none (Cannot be zero)
-                    //repeatType: 'day', // (optional) Repeating interval. Check 'Repeating Notifications' section for more info.
-                    //actions: '["Yes", "No"]',  // (Android only) See the doc for notification actions to know more
-                    date: notification.fireDate
-                });
-
-
-            }
-            Alert.alert(
-              'Notifications Enabled',
-              'You can disable these notifications at any time.',
-              [
-                  {text: 'OK', onPress: () => console.log('OK Pressed')},
-              ],
-              { cancelable: false }
-            )
-          });
+          for (i=0;i<l;i++) {
+              notification = notificationArray[i];
+              let localNotification = NotificationsIOS.localNotification({
+                fireDate: notification.fireDate,
+                alertBody: notification.desc,
+                alertTitle: notification.title,
+                soundName: "chime.aiff",
+                  silent: false,
+                category: "ACHIEVEMENT",
+                userInfo: { }
+              });
+          }
+          Alert.alert(
+            'Notifications Enabled',
+            'You can disable these notifications at any time.',
+            [
+                {text: 'OK', onPress: () => console.log('OK Pressed')},
+            ],
+            { cancelable: false }
+          )
         });
       } else {
         this._warnAboutDate();
@@ -351,22 +339,18 @@ export default class NotificationsPage extends Component<{}> {
     )
   }
 
-  _doNotificationsOff(stats, date) {
+  _doNotificationsOff() {
     //console.log("do notifications off");
-    if (date) {
-      if (date !== "") {
-        this._doCancelNotifications(function() {
-          Alert.alert(
-            'Notifications Disabled',
-            'All future notifications from this app have been disabled.',
-            [
-                {text: 'OK', onPress: () => console.log('OK Pressed')},
-            ],
-            { cancelable: false }
-          )
-        });
-      }
-    }
+    NotificationsIOS.cancelAllLocalNotifications();
+
+    Alert.alert(
+      'Notifications Disabled',
+      'All future notifications from this app have been disabled.',
+      [
+          {text: 'OK', onPress: () => console.log('OK Pressed')},
+      ],
+      { cancelable: false }
+    )
   }
 
   _doNotificationsTest() {
@@ -374,39 +358,15 @@ export default class NotificationsPage extends Component<{}> {
     var myDate = new Date()
     myDate.setSeconds(myDate.getSeconds() + 10);
 
-    PushNotification.localNotificationSchedule({
-        /* Android Only Properties */
-        //id: '0', // (optional) Valid unique 32 bit integer specified as string. default: Autogenerated Unique ID
-        //ticker: "My Notification Ticker", // (optional)
-        //autoCancel: true, // (optional) default: true
-        //largeIcon: "ic_launcher", // (optional) default: "ic_launcher"
-        smallIcon: "ic_cake", // (optional) default: "ic_notification" with fallback for "ic_launcher"
-        //bigText: , // (optional) default: "message" prop
-        //subText: "This is a subText", // (optional) default: none
-        //color: "red", // (optional) default: system default
-        vibrate: true, // (optional) default: true
-        vibration: 300, // vibration length in milliseconds, ignored if vibrate=false, default: 1000
-        //tag: 'some_tag', // (optional) add tag to message
-        //group: "group", // (optional) add group to message
-        //ongoing: false, // (optional) set whether this is an "ongoing" notification
-        //priority: "high", // (optional) set notification priority, default: high
-        //visibility: "private", // (optional) set notification visibility, default: private
-        //importance: "high", // (optional) set notification importance, default: high
-
-        /* iOS only properties */
-        //alertAction: // (optional) default: view
-        //category: // (optional) default: null
-        //userInfo: // (optional) default: null (object containing additional notification data)
-
-        /* iOS and Android properties */
-        title: "This is a test", // (optional)
-        message: "Testing, testing, 1, 2, 3", // (required)
-        playSound: true, // (optional) default: true
-        soundName: 'default', // (optional) Sound to play when the notification is shown. Value of 'default' plays the default sound. It can be set to a custom sound such as 'android.resource://com.xyz/raw/my_sound'. It will look for the 'my_sound' audio file in 'res/raw' directory and play it. default: 'default' (default sound is played)
-        //number: '10', // (optional) Valid 32 bit integer specified as string. default: none (Cannot be zero)
-        //repeatType: 'day', // (optional) Repeating interval. Check 'Repeating Notifications' section for more info.
-        //actions: '["Yes", "No"]',  // (Android only) See the doc for notification actions to know more
-        date: myDate
+    NotificationsIOS.requestPermissions();
+    let localNotification = NotificationsIOS.localNotification({
+      fireDate: myDate,
+      alertBody: "This is a test notification",
+      alertTitle: "Testing 1 2 3!",
+      soundName: "chime.aiff",
+        silent: false,
+      category: "TEST",
+      userInfo: { }
     });
   }
 
@@ -424,10 +384,10 @@ export default class NotificationsPage extends Component<{}> {
         onPress={() => this._doNotifications(this.state.stats, this.state.date)}
         />
         <TurnOffButton
-        onPress={() => this._doNotificationsOff(this.state.stats, this.state.date)}
+        onPress={this._doNotificationsOff}
         />
         {
-        /* disable on live
+        /*
         <TestButton
         onPress={this._doNotificationsTest}
         />
