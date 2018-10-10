@@ -387,11 +387,11 @@ export default class NotificationsPage extends Component<{}> {
         onPress={this._doNotificationsOff}
         />
         {
-        /*
+        /*  comment out the test button for release
         <TestButton
         onPress={this._doNotificationsTest}
         />
-        */
+        /* */
         }
         </View>
         </ScrollView>
