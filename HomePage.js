@@ -6,6 +6,7 @@ import { StackNavigator } from 'react-navigation';
 import DatePicker from 'react-native-datepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import RatingRequester from 'rn-rating-requester';
+import SplashScreen from 'react-native-splash-screen';
 
 const RatingOptions = {
     enjoyingMessage: "Are you enjoying this app?",
@@ -153,6 +154,8 @@ export default class HomePage extends Component<{}> {
   };
 
   componentDidMount() {
+
+    SplashScreen.hide();
 
     AsyncStorage.getItem("date").then((value) => {
         //console.log("date from AsyncStorage: " + value);
