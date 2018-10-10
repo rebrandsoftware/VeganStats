@@ -427,11 +427,11 @@ export default class NotificationsPage extends Component<{}> {
         onPress={() => this._doNotificationsOff(this.state.stats, this.state.date)}
         />
         {
-        /* disable on live */
+        /* disable on live
         <TestButton
         onPress={this._doNotificationsTest}
         />
-
+        */
         }
         </View>
         </ScrollView>
