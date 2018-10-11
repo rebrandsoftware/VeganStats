@@ -88,6 +88,23 @@ apply from: "../../node_modules/react-native/react.gradle"
  */
 def enableSeparateBuildPerCPUArchitecture = false
 
+// Get the password for signing
+
+def getPassword(String currentUser, String keyChain) {
+   def stdout = new ByteArrayOutputStream()
+   def stderr = new ByteArrayOutputStream()
+   exec {
+       commandLine 'security', 'find-generic-password', '-s', keyChain, '-w'
+       standardOutput = stdout
+       errorOutput = stderr
+       ignoreExitValue true
+   }
+   //noinspection GroovyAssignabilityCheck
+      stdout.toString().trim()
+}
+
+def pass = getPassword("mikegibson","android_keystore")
+project.logger.lifecycle('pass:' + pass)
 /**
  * Run Proguard to shrink the Java bytecode in release builds.
  */
@@ -107,12 +124,15 @@ android {
             abiFilters "armeabi-v7a", "x86"
         }
     }
-    release {
-      if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
-            storeFile file(MYAPP_RELEASE_STORE_FILE)
-            storePassword pass // Change this
-            keyAlias MYAPP_RELEASE_KEY_ALIAS
-            keyPassword pass // Change this
+    signingConfigs {
+      release {
+        if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
+
+              storeFile file(MYAPP_RELEASE_STORE_FILE)
+              storePassword pass
+              keyAlias MYAPP_RELEASE_KEY_ALIAS
+              keyPassword pass
+        }
       }
     }
     splits {

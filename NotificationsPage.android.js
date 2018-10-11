@@ -119,8 +119,8 @@ function futureStats(stats, startDateSQL, callback) {
               addToNotificationArrayAnniversary(notificationArray, "Weeks", "Congratulations!", "You have been vegan for [#] weeks! Going strong!", startDateSQL, notificationCountWeeks, "Weeks", function(notificationArray) {
                 addToNotificationArrayAnniversary(notificationArray, "Months", "Amazing!", "You have been vegan for [#] months! Keep it up!", startDateSQL, notificationCountMonths, "Months", function(notificationArray) {
                   addToNotificationArrayAnniversary(notificationArray, "Anniversary", "Happy Veganniversary!", "You have been vegan for [#] years! Simply amazing!", startDateSQL, notificationCountYears, "Years", function(notificationArray) {
-                    console.log("Final array:");
-                    console.log(notificationArray);
+                    //console.log("Final array:");
+                    //console.log(notificationArray);
                     callback(notificationArray);
 
                   });
@@ -157,7 +157,7 @@ function addToNotificationArray(notificationArray, nKey, nTitle, nDesc, signific
 }
 
 function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDesc, startDateSQL, nCount, nType, callback) {
-  console.log("addToNotificationArrayAnniversary: " + nTitle);
+  //console.log("addToNotificationArrayAnniversary: " + nTitle);
   var targetDate;
   var i;
   var newDesc;
@@ -165,8 +165,8 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
   var newDate;
   var smallIcon;
   startDate.setDate(startDate.getDate() + 1); //sql seems to lose a day
-  console.log("startDate: ");
-  console.log(startDate);
+  //console.log("startDate: ");
+  //console.log(startDate);
   //avoid sending notifications in the middle of the night
   if (startDate.getHours() < 10) {
     startDate.setHours(10);
@@ -176,8 +176,8 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
 
   var iAdded =0;
   var addIt = function(nKey, nTitle, newDesc, smallIcon, fireDate, callback) {
-    console.log("fireDate:");
-    console.log(fireDate);
+    //console.log("fireDate:");
+    //console.log(fireDate);
     notificationArray.push({key: nKey + i, title: nTitle, desc: newDesc, smallIcon: smallIcon, fireDate: fireDate});
     callback();
   }
@@ -214,7 +214,7 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
 
     addIt(nKey, nTitle, newDesc, smallIcon, newDate, function() {
       iAdded ++;
-      console.log(iAdded);
+      //console.log(iAdded);
       if (iAdded === nCount) {
         //console.log("beforecallback");
         //console.log(notificationArray);
@@ -279,6 +279,7 @@ export default class NotificationsPage extends Component<{}> {
         this._doCancelNotifications(function() {
           futureStats(stats, date, function(notificationArray) {
             //now we should have an array of notifications
+            //console.log(notificationArray);
             var i;
             var l = notificationArray.length;
             var notification;
@@ -291,7 +292,7 @@ export default class NotificationsPage extends Component<{}> {
                     //ticker: "My Notification Ticker", // (optional)
                     //autoCancel: true, // (optional) default: true
                     //largeIcon: "ic_launcher", // (optional) default: "ic_launcher"
-                    smallIcon: smallIcon, // (optional) default: "ic_notification" with fallback for "ic_launcher"
+                    smallIcon: notification.smallIcon, // (optional) default: "ic_notification" with fallback for "ic_launcher"
                     //bigText: , // (optional) default: "message" prop
                     //subText: "This is a subText", // (optional) default: none
                     //color: "red", // (optional) default: system default
