@@ -142,6 +142,8 @@ function addToNotificationArray(notificationArray, nKey, nTitle, nDesc, signific
   var i;
   var newDesc;
   var smallIcon = "ic_" + item.icon;
+  var now = new Date();
+  now.setHours(0, 0, 0, 0)
 
   for (i=0; i<notificationCount; i++) {
     targetValue = targetValue + significant; //increase by each significant amount
@@ -149,8 +151,10 @@ function addToNotificationArray(notificationArray, nKey, nTitle, nDesc, signific
     targetDate = dateTargetReached(amountPerDay, value, targetValue);
     //set a notification
     if (targetDate) {
-        newDesc = nDesc.replace("[#]", numberWithCommas(targetValue));
-        notificationArray.push({key: nKey + i, title: nTitle, desc: newDesc, smallIcon: smallIcon, fireDate: targetDate});
+        if (targetDate > now) {
+          newDesc = nDesc.replace("[#]", numberWithCommas(targetValue));
+          notificationArray.push({key: nKey + i, title: nTitle, desc: newDesc, smallIcon: smallIcon, fireDate: targetDate});
+        }
     }
   }
   callback(notificationArray);
@@ -164,6 +168,9 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
   var startDate = new Date(startDateSQL);
   var newDate;
   var smallIcon;
+  var now = new Date();
+  now.setHours(0, 0, 0, 0)
+
   startDate.setDate(startDate.getDate() + 1); //sql seems to lose a day
   //console.log("startDate: ");
   //console.log(startDate);
@@ -175,10 +182,12 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
   }
 
   var iAdded =0;
-  var addIt = function(nKey, nTitle, newDesc, smallIcon, fireDate, callback) {
+  var addIt = function(nKey, nTitle, newDesc, smallIcon, fireDate, now, callback) {
     //console.log("fireDate:");
     //console.log(fireDate);
-    notificationArray.push({key: nKey + i, title: nTitle, desc: newDesc, smallIcon: smallIcon, fireDate: fireDate});
+    if (fireDate > now) {
+      notificationArray.push({key: nKey + i, title: nTitle, desc: newDesc, smallIcon: smallIcon, fireDate: fireDate});
+    }
     callback();
   }
 
@@ -212,7 +221,7 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
       newDesc = newDesc.replace("s!", "!");
     }
 
-    addIt(nKey, nTitle, newDesc, smallIcon, newDate, function() {
+    addIt(nKey, nTitle, newDesc, smallIcon, newDate, now, function() {
       iAdded ++;
       //console.log(iAdded);
       if (iAdded === nCount) {
