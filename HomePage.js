@@ -7,7 +7,7 @@ import DatePicker from 'react-native-datepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import RatingRequester from 'rn-rating-requester';
 import SplashScreen from 'react-native-splash-screen';
-import SwitchExample from './switch_example.js'
+import Switch from './MySwitch.js'
 
 const RatingOptions = {
     enjoyingMessage: "Are you enjoying this app?",
@@ -85,6 +85,17 @@ const SourcesButton = (props) => {
   );
 };
 
+const TextButton = (props) => {
+  return (
+    <TouchableOpacity
+      style={styles.textButton}
+      onPress={props.onPress}
+    >
+      <Text style={styles.textButtonText}>Sources</Text>
+    </TouchableOpacity>
+  );
+};
+
 const NotificationsButton = (props) => {
   return (
     <TouchableOpacity
@@ -126,7 +137,7 @@ function statsFromSeconds(seconds, metric) {
   var perDayArray;
   console.log("StatsFromSeconds metric: " + metric);
 
-  if (metric === false) {
+  if (metric == false) {
     perDayArray = [
       { key:'water', desc:'Gallons of Water', icon:'cup-water', color:'#00F', value:1100},
       { key:'grain', desc:'Pounds of Grain', icon:'barley', color:'#f5deb3',value:40},
@@ -169,7 +180,7 @@ export default class HomePage extends Component<{}> {
   constructor(props){
     super(props)
     this.state = {
-      date: '',
+      date: null,
       days: 0,
       metric: false,
       timeoutId: null,
@@ -183,6 +194,20 @@ export default class HomePage extends Component<{}> {
         { key:'forest', desc:'Square Feet of Forest', icon:'pine-tree', color:'#228B22',value:30}, //3 square meters
         { key:'co2', desc:'Pounds of Co2', icon:'car-hatchback', color:'#A9A9A9',value:20}, //9kg
         { key:'animals', desc:"Animal's Life", icon:'pig', color:'#FFC0CB',value:1},  //1 life
+      ],
+      amountSavedArrayImperial: [
+        { key:'water', desc:'Gallons of Water', icon:'cup-water', color:'#00F', value:1100}, //4164 liters
+        { key:'grain', desc:'Pounds of Grain', icon:'barley', color:'#f5deb3',value:40}, //18 kg
+        { key:'forest', desc:'Square Feet of Forest', icon:'pine-tree', color:'#228B22',value:30}, //3 square meters
+        { key:'co2', desc:'Pounds of Co2', icon:'car-hatchback', color:'#A9A9A9',value:20}, //9kg
+        { key:'animals', desc:"Animal's Life", icon:'pig', color:'#FFC0CB',value:1},  //1 life
+      ],
+      amountSavedArrayMetric: [
+        { key:'water', desc:'Litres of Water', icon:'cup-water', color:'#00F', value:4164},
+        { key:'grain', desc:'Kilograms of Grain', icon:'barley', color:'#f5deb3',value:18},
+        { key:'forest', desc:'Square Meters of Forest', icon:'pine-tree', color:'#228B22',value:3},
+        { key:'co2', desc:'Kilograms of Co2', icon:'car-hatchback', color:'#A9A9A9',value:9},
+        { key:'animals', desc:"Animal's Life", icon:'pig', color:'#FFC0CB',value:1},
       ]
     };
 
@@ -199,15 +224,22 @@ export default class HomePage extends Component<{}> {
     AsyncStorage.getItem("date").then((date) => {
       AsyncStorage.getItem("metric").then((metric) => {
         //console.log("date from AsyncStorage: " + value);
-        if (metric) {
-          this.setState({metric: JSON.parse(metric)});
-          metric = true;
+        if (metric !== null) {
+          metric = JSON.parse(metric);
         } else {
           metric = false;
-          this.setState({metric: metric});
         }
+
+        if (metric == true) {
+          this.setState({amountSavedArray: this.state.amountSavedArrayMetric});
+        } else {
+          this.setState({amountSavedArray: this.state.amountSavedArrayImperial});
+        }
+
+        this.setState({metric: metric});
         if (date) {
           this.setState({date: date});
+          console.log("from loading");
           this._onDateChanged(date, metric);
         }
       }).done();
@@ -247,7 +279,7 @@ export default class HomePage extends Component<{}> {
   _onMetricChanged = (value) => {
       this.setState({metric: value});
       console.log('Metric changed: ' + value);
-      this._onDateChanged();
+      this._onDateChanged(null, value);
    }
 
   _onPressItem = (index) => {
@@ -256,43 +288,56 @@ export default class HomePage extends Component<{}> {
   };
 
   _onDateChanged = (date, metric) => {
-    //console.log("Date changed " + date);
+    console.log("Date changed " + date + " metric: " + metric);
     if (!date) {
       date = this.state.date;
       //console.log("using saved date: " + date);
     }
 
-    if (!metric) {
-      metric = this.state.metric;
+    if (date !== null && date !== undefined) {
+
+
+
+      if (metric === null || metric === undefined) {
+        console.log("not metric: " + metric);
+        metric = this.state.metric;
+        console.log("after: " + metric);
+
+      }
+
+      var seconds = secondsFromStartDate(date);
+      //console.log("seconds: " + seconds);
+      var stats = statsFromSeconds(seconds, metric);
+      var days = daysFromSeconds(seconds);
+      var sTextPlain = textPlainFromArray(stats, date, days);
+
+      this.setState({ date: date });
+      this.setState({ calculated: true });
+      this.setState({ amountSavedArray: stats });
+      this.setState({ days: days});
+      this.setState({ textPlain: sTextPlain});
+      AsyncStorage.setItem("date", date);
+      AsyncStorage.setItem("metric", JSON.stringify(metric));
+      //console.log(stats);
+      //this.setState({ searchString: date });
+      //await AsyncStorage.setItem('date', date);
+      var timeoutId;
+      if (this.state.timeoutId) {
+        //console.log("timeoutId: " + this.state.timeoutId);
+        clearTimeout(this.state.timeoutId);
+        this.setState({ timeoutId: null});
+        //console.log("cleared timeout");
+      }
+
+      timeoutId = setTimeout(this._onDateChanged, 60000);
+      this.setState({ timeoutId: timeoutId });
+    } else {
+      if (metric == true) {
+        this.setState({amountSavedArray: this.state.amountSavedArrayMetric});
+      } else {
+        this.setState({amountSavedArray: this.state.amountSavedArrayImperial});
+      }
     }
-
-    var seconds = secondsFromStartDate(date);
-    //console.log("seconds: " + seconds);
-    var stats = statsFromSeconds(seconds, metric);
-    var days = daysFromSeconds(seconds);
-    var sTextPlain = textPlainFromArray(stats, date, days);
-
-    this.setState({ date: date });
-    this.setState({ calculated: true });
-    this.setState({ amountSavedArray: stats });
-    this.setState({ days: days});
-    this.setState({ textPlain: sTextPlain});
-    AsyncStorage.setItem("date", date);
-    AsyncStorage.setItem("metric", JSON.stringify(metric));
-    //console.log(stats);
-    //this.setState({ searchString: date });
-    //await AsyncStorage.setItem('date', date);
-    var timeoutId;
-    if (this.state.timeoutId) {
-      //console.log("timeoutId: " + this.state.timeoutId);
-      clearTimeout(this.state.timeoutId);
-      this.setState({ timeoutId: null});
-      //console.log("cleared timeout");
-    }
-
-    timeoutId = setTimeout(this._onDateChanged, 60000);
-    this.setState({ timeoutId: timeoutId });
-
   };
 
   _bannerError = (error) => {
@@ -341,14 +386,11 @@ export default class HomePage extends Component<{}> {
                 // ... You can check the source to find the other keys.
               }}
               onDateChange={(date) => {
+                console.log("from on date change");
                 this.setState({date: date});
                 this._onDateChanged(date);
               }}
             />
-            <Text style={styles.title}>Metric:</Text>
-            <SwitchExample
-            onMetricChanged = {this._onMetricChanged}
-            metric = {this.state.metric}/>
           </View>
           <View style={styles.centerContainer}>
             {header}
@@ -360,8 +402,23 @@ export default class HomePage extends Component<{}> {
             renderItem={this._renderItem}
           />
           <View style={styles.centerContainer}>
+
+          <View style={styles.metricContainer}>
+            <View style={styles.metricCol1} >
+                <Text style={styles.metricLabel}>Metric:</Text>
+            </View>
+            <View style={styles.metricCol2} >
+              <MySwitch
+              onMetricChanged = {this._onMetricChanged}
+              metric = {this.state.metric}/>
+            </View>
+          </View>
+
             <NotificationsButton
-            onPress={() => navigate('Notifications', {date: this.state.date, stats: this.state.amountSavedArray})}
+            onPress={() => navigate('Notifications', {date: this.state.date, stats: this.state.amountSavedArray, metric: this.state.metric})}
+            />
+            <TextButton
+            onPress={() => navigate('Text', {date: this.state.date, stats: this.state.amountSavedArray, metric: this.state.metric})}
             />
             <SourcesButton
             onPress={() => navigate('Source')}
@@ -378,7 +435,22 @@ export default class HomePage extends Component<{}> {
 }
 
 const styles = StyleSheet.create({
-
+  metricContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10
+  },
+  metricCol1: {
+    width: "75%"
+  },
+  metricCol2: {
+    width: "25%"
+  },
+  metricLabel: {
+    fontSize: 15,
+    textAlign: 'right'
+  },
   container: {
     padding: 10,
     marginTop: 35,

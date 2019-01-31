@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { View, Switch, StyleSheet } from 'react-native'
 
-export default SwitchExample = (props) => {
+export default MySwitch = (props) => {
    return (
       <View style = {styles.container}>
          <Switch
@@ -13,7 +13,6 @@ export default SwitchExample = (props) => {
 const styles = StyleSheet.create ({
    container: {
       flex: 1,
-      alignItems: 'flex-end',
-      marginTop: 10
+      alignItems: 'center'
    }
 })
