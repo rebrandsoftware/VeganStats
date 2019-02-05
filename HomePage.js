@@ -85,16 +85,16 @@ const SourcesButton = (props) => {
   );
 };
 
-// const TextButton = (props) => {
-//   return (
-//     <TouchableOpacity
-//       style={styles.textButton}
-//       onPress={props.onPress}
-//     >
-//       <Text style={styles.textButtonText}>Sources</Text>
-//     </TouchableOpacity>
-//   );
-// };
+const TextButton = (props) => {
+  return (
+    <TouchableOpacity
+      style={styles.textButton}
+      onPress={props.onPress}
+    >
+      <Text style={styles.textButtonText}>Sources</Text>
+    </TouchableOpacity>
+  );
+};
 
 const NotificationsButton = (props) => {
   return (
@@ -417,7 +417,9 @@ export default class HomePage extends Component<{}> {
             <NotificationsButton
             onPress={() => navigate('Notifications', {date: this.state.date, stats: this.state.amountSavedArray, metric: this.state.metric})}
             />
-          
+            <TextButton
+            onPress={() => navigate('Text', {date: this.state.date, stats: this.state.amountSavedArray, metric: this.state.metric})}
+            />
             <SourcesButton
             onPress={() => navigate('Source')}
             />
