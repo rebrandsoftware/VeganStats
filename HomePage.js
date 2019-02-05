@@ -7,7 +7,6 @@ import DatePicker from 'react-native-datepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import RatingRequester from 'rn-rating-requester';
 import SplashScreen from 'react-native-splash-screen';
-import SwitchExample from './switch_example.js'
 
 const RatingOptions = {
     enjoyingMessage: "Are you enjoying this app?",
@@ -107,42 +106,14 @@ function doNotEnjoyingApp() {
   )
 }
 
-function daysFromSeconds(seconds) {
-  return Math.round(seconds / 86400);
-}
-
-function textPlainFromArray(stats, date, days) {
-  var ret = "Being vegan since " + date; + " (" + days + " days) saved ";
-  var key;
-  ret += numberWithCommas(stats[0].value) + " " + stats[0].desc + ", ";
-  ret += numberWithCommas(stats[1].value) + " " + stats[1].desc + ", ";
-  ret += numberWithCommas(stats[2].value) + " " + stats[2].desc + ", ";
-  ret += numberWithCommas(stats[3].value) + " " + stats[3].desc + ", and";
-  ret += numberWithCommas(stats[4].value) + " " + stats[4].desc + ".";
-  return ret
-}
-
-function statsFromSeconds(seconds, metric) {
-  var perDayArray;
-  console.log("StatsFromSeconds metric: " + metric);
-
-  if (metric === false) {
-    perDayArray = [
-      { key:'water', desc:'Gallons of Water', icon:'cup-water', color:'#00F', value:1100},
-      { key:'grain', desc:'Pounds of Grain', icon:'barley', color:'#f5deb3',value:40},
-      { key:'forest', desc:'Square Feet of Forest', icon:'pine-tree', color:'#228B22',value:30},
-      { key:'co2', desc:'Pounds of Co2', icon:'car-hatchback', color:'#A9A9A9',value:20},
-      { key:'animals', desc:"Animal's Life", icon:'pig', color:'#FFC0CB',value:1},
-    ];
-  } else {
-    perDayArray = [
-      { key:'water', desc:'Litres of Water', icon:'cup-water', color:'#00F', value:4164},
-      { key:'grain', desc:'Kilograms of Grain', icon:'barley', color:'#f5deb3',value:18},
-      { key:'forest', desc:'Square Meters of Forest', icon:'pine-tree', color:'#228B22',value:3},
-      { key:'co2', desc:'Kilograms of Co2', icon:'car-hatchback', color:'#A9A9A9',value:9},
-      { key:'animals', desc:"Animal's Life", icon:'pig', color:'#FFC0CB',value:1},
-    ];
-  }
+function statsFromSeconds(seconds) {
+  var perDayArray = [
+    { key:'water', desc:'Gallons of Water', icon:'cup-water', color:'#00F', value:1100},
+    { key:'grain', desc:'Pounds of Grain', icon:'barley', color:'#f5deb3',value:40},
+    { key:'forest', desc:'Square Feet of Forest', icon:'pine-tree', color:'#228B22',value:30},
+    { key:'co2', desc:'Pounds of Co2', icon:'car-hatchback', color:'#A9A9A9',value:20},
+    { key:'animals', desc:"Animal's Life", icon:'pig', color:'#FFC0CB',value:1},
+  ];
 
   var newArray = perDayArray.map(obj =>{
      obj.value = Math.round(((obj.value / 86400) * seconds));
@@ -163,54 +134,35 @@ function secondsFromStartDate(startDateSQL) {
 
 export default class HomePage extends Component<{}> {
   static navigationOptions = {
-    title: 'VeganStats',
+    title: 'Vegan Stats',
   };
 
   constructor(props){
     super(props)
     this.state = {
       date: '',
-      days: 0,
-      metric: false,
       timeoutId: null,
       calculated: false,
-      textPlain: '',
-      textReddit: '',
-      textHTML: '',
       amountSavedArray: [
-        { key:'water', desc:'Gallons of Water', icon:'cup-water', color:'#00F', value:1100}, //4164 liters
-        { key:'grain', desc:'Pounds of Grain', icon:'barley', color:'#f5deb3',value:40}, //18 kg
-        { key:'forest', desc:'Square Feet of Forest', icon:'pine-tree', color:'#228B22',value:30}, //3 square meters
-        { key:'co2', desc:'Pounds of Co2', icon:'car-hatchback', color:'#A9A9A9',value:20}, //9kg
-        { key:'animals', desc:"Animal's Life", icon:'pig', color:'#FFC0CB',value:1},  //1 life
-      ]
+        { key:'water', desc:'Gallons of Water', icon:'cup-water', color:'#00F', value:1100},
+        { key:'grain', desc:'Pounds of Grain', icon:'barley', color:'#f5deb3',value:40},
+        { key:'forest', desc:'Square Feet of Forest', icon:'pine-tree', color:'#228B22',value:30},
+        { key:'co2', desc:'Pounds of Co2', icon:'car-hatchback', color:'#A9A9A9',value:20},
+        { key:'animals', desc:"Animal's Life", icon:'pig', color:'#FFC0CB',value:1},
+      ],
     };
-
-
-
   };
 
   componentDidMount() {
 
     SplashScreen.hide();
 
-
-
-    AsyncStorage.getItem("date").then((date) => {
-      AsyncStorage.getItem("metric").then((metric) => {
+    AsyncStorage.getItem("date").then((value) => {
         //console.log("date from AsyncStorage: " + value);
-        if (metric) {
-          this.setState({metric: JSON.parse(metric)});
-          metric = true;
-        } else {
-          metric = false;
-          this.setState({metric: metric});
+        if (value) {
+          this.setState({"date": value});
+          this._onDateChanged(value);
         }
-        if (date) {
-          this.setState({date: date});
-          this._onDateChanged(date, metric);
-        }
-      }).done();
     }).done();
 
     //each time the user opens the app for 15 seconds, increment the RatingRequestor
@@ -244,41 +196,25 @@ export default class HomePage extends Component<{}> {
     />
   );
 
-  _onMetricChanged = (value) => {
-      this.setState({metric: value});
-      console.log('Metric changed: ' + value);
-      this._onDateChanged();
-   }
-
   _onPressItem = (index) => {
     //console.log("Pressed " + index);
 
   };
 
-  _onDateChanged = (date, metric) => {
+  _onDateChanged = (date) => {
     //console.log("Date changed " + date);
     if (!date) {
       date = this.state.date;
       //console.log("using saved date: " + date);
     }
 
-    if (!metric) {
-      metric = this.state.metric;
-    }
-
     var seconds = secondsFromStartDate(date);
     //console.log("seconds: " + seconds);
-    var stats = statsFromSeconds(seconds, metric);
-    var days = daysFromSeconds(seconds);
-    var sTextPlain = textPlainFromArray(stats, date, days);
-
+    var stats = statsFromSeconds(seconds);
     this.setState({ date: date });
     this.setState({ calculated: true });
     this.setState({ amountSavedArray: stats });
-    this.setState({ days: days});
-    this.setState({ textPlain: sTextPlain});
     AsyncStorage.setItem("date", date);
-    AsyncStorage.setItem("metric", JSON.stringify(metric));
     //console.log(stats);
     //this.setState({ searchString: date });
     //await AsyncStorage.setItem('date', date);
@@ -312,7 +248,7 @@ export default class HomePage extends Component<{}> {
   render() {
      const { navigate } = this.props.navigation;
     const header = this.state.calculated ?
-      <Text style={styles.header}>Being vegan for {numberWithCommas(this.state.days)} days saved:</Text> : <Text style={styles.header}>Each day, eating a vegan diet saves:</Text>;
+      <Text style={styles.header}>Being vegan since {this.state.date} saved:</Text> : <Text style={styles.header}>Each day, eating a vegan diet saves:</Text>;
     //console.log("this.state:");
     //console.log(this.state);
     return (
@@ -345,10 +281,6 @@ export default class HomePage extends Component<{}> {
                 this._onDateChanged(date);
               }}
             />
-            <Text style={styles.title}>Metric:</Text>
-            <SwitchExample
-            onMetricChanged = {this._onMetricChanged}
-            metric = {this.state.metric}/>
           </View>
           <View style={styles.centerContainer}>
             {header}
@@ -467,5 +399,5 @@ const styles = StyleSheet.create({
   notificationsButtonText: {
     fontSize: 20,
     color: 'black',
-  }
+  },
 });
