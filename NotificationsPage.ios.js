@@ -10,7 +10,7 @@ const numberWithCommas = (x) => {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-const notificationCount = 10;
+const notificationCount = 100;
 const notificationCountDays = 6;
 const notificationCountWeeks= 3;
 const notificationCountMonths = 11;
@@ -72,16 +72,10 @@ function dateTargetReached(amountPerDay, currentAmount, targetAmount) {
   return newDate;
 }
 
-function futureStats(stats, startDateSQL, callback) {
+function futureStats(stats, startDateSQL, metric, callback) {
   //calculates the future benchmarks and returns an array of notifications to set
 
-  var perDayArray = [
-    { key:'water', desc:'Gallons of Water', icon:'cup-water', color:'#00F', value:1100},
-    { key:'grain', desc:'Pounds of Grain', icon:'barley', color:'#f5deb3',value:40},
-    { key:'forest', desc:'Square Feet of Forest', icon:'pine-tree', color:'#228B22',value:30},
-    { key:'co2', desc:'Pounds of Co2', icon:'car-hatchback', color:'#A9A9A9',value:20},
-    { key:'animals', desc:"Animal's Life", icon:'pig', color:'#FFC0CB',value:1},
-  ];
+  var perDayArray;
   var significant;
   var item;
   var value;
@@ -92,10 +86,40 @@ function futureStats(stats, startDateSQL, callback) {
   var notificationArray=[];
   var amountPerDay;
 
-  addToNotificationArray(notificationArray, "Water", "Environmental Milestone", "You have saved [#] gallons of water by being vegan!", 100000, stats[0], perDayArray[0].value, function(notificationArray) {
-    addToNotificationArray(notificationArray, "Grain", "Environmental Milestone", "You have saved [#] pounds of grain by being vegan!", 10000, stats[1], perDayArray[1].value, function(notificationArray) {
-      addToNotificationArray(notificationArray, "Forest", "Environmental Milestone", "You have saved [#] square feet of forest by being vegan!", 10000, stats[2], perDayArray[2].value, function(notificationArray) {
-        addToNotificationArray(notificationArray, "Co2", "Environmental Milestone", "You have saved [#] pounds of Co2 by being vegan!", 10000, stats[3], perDayArray[3].value, function(notificationArray) {
+  var liquid;
+  var solid;
+  var volume;
+
+  if (metric == false) {
+    liquid="gallons";
+    solid="pounds";
+    volume = "feet";
+    perDayArray = [
+      { key:'water', desc:'Gallons of Water', icon:'cup-water', color:'#00F', value:1100},
+      { key:'grain', desc:'Pounds of Grain', icon:'barley', color:'#f5deb3',value:40},
+      { key:'forest', desc:'Square Feet of Forest', icon:'pine-tree', color:'#228B22',value:30},
+      { key:'co2', desc:'Pounds of Co2', icon:'car-hatchback', color:'#A9A9A9',value:20},
+      { key:'animals', desc:"Animal's Life", icon:'pig', color:'#FFC0CB',value:1},
+    ];
+  } else {
+    liquid="litres";
+    solid="kilograms";
+    volume = "meters";
+    perDayArray = [
+      { key:'water', desc:'Litres of Water', icon:'cup-water', color:'#00F', value:4164},
+      { key:'grain', desc:'Kilograms of Grain', icon:'barley', color:'#f5deb3',value:18},
+      { key:'forest', desc:'Square Meters of Forest', icon:'pine-tree', color:'#228B22',value:3},
+      { key:'co2', desc:'Kilograms of Co2', icon:'car-hatchback', color:'#A9A9A9',value:9},
+      { key:'animals', desc:"Animal's Life", icon:'pig', color:'#FFC0CB',value:1},
+    ];
+  }
+
+
+
+  addToNotificationArray(notificationArray, "Water", "Environmental Milestone", "You have saved [#] " + liquid + " of water by being vegan!", 100000, stats[0], perDayArray[0].value, function(notificationArray) {
+    addToNotificationArray(notificationArray, "Grain", "Environmental Milestone", "You have saved [#] " + solid + " of grain by being vegan!", 10000, stats[1], perDayArray[1].value, function(notificationArray) {
+      addToNotificationArray(notificationArray, "Forest", "Environmental Milestone", "You have saved [#] square " + volume + " of forest by being vegan!", 10000, stats[2], perDayArray[2].value, function(notificationArray) {
+        addToNotificationArray(notificationArray, "Co2", "Environmental Milestone", "You have saved [#] " + solid + " of Co2 by being vegan!", 10000, stats[3], perDayArray[3].value, function(notificationArray) {
           addToNotificationArray(notificationArray, "Animals", "Compassion Milestone", "You have saved [#] animals' lives by being vegan!", 100, stats[4], perDayArray[4].value, function(notificationArray) {
             addToNotificationArrayAnniversary(notificationArray, "Days", "Well done!", "You have been vegan for [#] days! You can do it!", startDateSQL, notificationCountDays, "Days", function(notificationArray) {
               addToNotificationArrayAnniversary(notificationArray, "Weeks", "Congratulations!", "You have been vegan for [#] weeks! Going strong!", startDateSQL, notificationCountWeeks, "Weeks", function(notificationArray) {
@@ -137,15 +161,15 @@ function addToNotificationArray(notificationArray, nKey, nTitle, nDesc, signific
 }
 
 function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDesc, startDateSQL, nCount, nType, callback) {
-  console.log("addToNotificationArrayAnniversary: " + nTitle);
+  //console.log("addToNotificationArrayAnniversary: " + nTitle);
   var targetDate;
   var i;
   var newDesc;
   var startDate = new Date(startDateSQL);
   var newDate;
   startDate.setDate(startDate.getDate() + 1); //sql seems to lose a day
-  console.log("startDate: ");
-  console.log(startDate);
+  //console.log("startDate: ");
+  //console.log(startDate);
   //avoid sending notifications in the middle of the night
   if (startDate.getHours() < 10) {
     startDate.setHours(10);
@@ -155,8 +179,8 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
 
   var iAdded =0;
   var addIt = function(nKey, nTitle, newDesc, fireDate, callback) {
-    console.log("fireDate:");
-    console.log(fireDate);
+    //console.log("fireDate:");
+    //console.log(fireDate);
     notificationArray.push({key: nKey + i, title: nTitle, desc: newDesc, fireDate: fireDate});
     callback();
   }
@@ -189,7 +213,7 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
 
     addIt(nKey, nTitle, newDesc, newDate, function() {
       iAdded ++;
-      console.log(iAdded);
+      //console.log(iAdded);
       if (iAdded === nCount) {
         //console.log("beforecallback");
         //console.log(notificationArray);
@@ -234,6 +258,7 @@ export default class NotificationsPage extends Component<{}> {
     this.state = {
       date: navigation.getParam('date', ''),
       stats: navigation.getParam('stats'),
+      metric: navigation.getParam('metric'),
     };
 
     NotificationsIOS.addEventListener('remoteNotificationsRegistered', this.onPushRegistered.bind(this));
@@ -286,7 +311,7 @@ export default class NotificationsPage extends Component<{}> {
     //console.log("Notification Opened: " + JSON.stringify(notification));
   }
 
-  _doNotifications(stats, date) {
+  _doNotifications(stats, date, metric) {
     //console.log("do notifications");
     NotificationsIOS.requestPermissions();
 
@@ -294,7 +319,7 @@ export default class NotificationsPage extends Component<{}> {
     NotificationsIOS.cancelAllLocalNotifications();
     if (date) {
       if (date !== "") {
-        futureStats(stats, date, function(notificationArray) {
+        futureStats(stats, date, metric, function(notificationArray) {
           var i;
           var l = notificationArray.length;
           var notification;
@@ -381,7 +406,7 @@ export default class NotificationsPage extends Component<{}> {
         <Text style={styles.normal}>You can expect about 20 notifications in the first year you are vegan, and 10 per year thereafter.</Text>
 
         <TurnOnButton
-        onPress={() => this._doNotifications(this.state.stats, this.state.date)}
+        onPress={() => this._doNotifications(this.state.stats, this.state.date, this.state.metric)}
         />
         <TurnOffButton
         onPress={this._doNotificationsOff}
