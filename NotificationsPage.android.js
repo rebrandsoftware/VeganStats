@@ -220,7 +220,7 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
 
     switch(nType) {
       case "Days":
-        newDate.setDate(startDate.getDate() + i;
+        newDate.setDate(startDate.getDate() + i);
         smallIcon = "ic_calendar";
         break;
       case "Weeks":
@@ -228,11 +228,11 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
         smallIcon = "ic_calendar";
         break;
       case "Months":
-        newDate.setMonth(startDate.getMonth() + i;
+        newDate.setMonth(startDate.getMonth() + i);
         smallIcon = "ic_calendar";
         break;
       case "Years":
-        newDate.setFullYear(startDate.getFullYear() + i;
+        newDate.setFullYear(startDate.getFullYear() + i);
         smallIcon = "ic_cake";
         break;
     }
