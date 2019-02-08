@@ -9,3 +9,7 @@ VeganStats also provides motivational notifications based on the time you have b
 New vegans can receive messages of support as they make their way through their first days, weeks and months of being vegan.  
 
 Long-term vegans can receive notifications on the anniversary of the day they went vegan, as well as when they reach certain environmental and compassionate milestones.
+
+---
+
+This free, open-source app was created as a way for me to learn React Native and also hopefully do some good in the world.
