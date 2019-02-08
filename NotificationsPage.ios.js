@@ -193,13 +193,13 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
         newDate.setDate(startDate.getDate() + i);
         break;
       case "Weeks":
-        newDate.setDate(startDate.getDate() + (i * 7));
+        newDate.setDate(startDate.getDate() + ((i + 1) * 7));
         break;
       case "Months":
-        newDate.setMonth(startDate.getMonth() + i);
+        newDate.setMonth(startDate.getMonth() + (i + 1));
         break;
       case "Years":
-        newDate.setFullYear(startDate.getFullYear() + i);
+        newDate.setFullYear(startDate.getFullYear() + (i + 1));
         break;
     }
 

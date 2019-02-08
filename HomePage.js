@@ -356,9 +356,13 @@ export default class HomePage extends Component<{}> {
   // };
 
   render() {
-     const { navigate } = this.props.navigation;
+    const { navigate } = this.props.navigation;
+    var sDays = "days";
+    if (this.state.days === 1) {
+      sDays = "day";
+    }
     const header = this.state.calculated ?
-      <Text style={styles.header}>Being vegan for {numberWithCommas(this.state.days)} days saved:</Text> : <Text style={styles.header}>Each day, eating a vegan diet saves:</Text>;
+      <Text style={styles.header}>Being vegan for {numberWithCommas(this.state.days)} {sDays} saved:</Text> : <Text style={styles.header}>Each day, eating a vegan diet saves:</Text>;
     //console.log("this.state:");
     //console.log(this.state);
     return (
