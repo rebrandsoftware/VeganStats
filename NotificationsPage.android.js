@@ -28,11 +28,11 @@ const numberWithCommas = (x) => {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-const notificationCount = 100;
+const notificationCount = 50;
 const notificationCountDays = 6;
 const notificationCountWeeks= 3;
 const notificationCountMonths = 11;
-const notificationCountYears = 100;
+const notificationCountYears = 50;
 
 const TurnOnButton = (props) => {
   return (
@@ -220,19 +220,19 @@ function addToNotificationArrayAnniversary(notificationArray, nKey, nTitle, nDes
 
     switch(nType) {
       case "Days":
-        newDate.setDate(startDate.getDate() + (i + 1));
+        newDate.setDate(startDate.getDate() + i;
         smallIcon = "ic_calendar";
         break;
       case "Weeks":
-        newDate.setDate(startDate.getDate() + ((i + 1) * 7));
+        newDate.setDate(startDate.getDate() + (i * 7));
         smallIcon = "ic_calendar";
         break;
       case "Months":
-        newDate.setMonth(startDate.getMonth() + (i + 1));
+        newDate.setMonth(startDate.getMonth() + i;
         smallIcon = "ic_calendar";
         break;
       case "Years":
-        newDate.setFullYear(startDate.getFullYear() + (i + 1));
+        newDate.setFullYear(startDate.getFullYear() + i;
         smallIcon = "ic_cake";
         break;
     }
