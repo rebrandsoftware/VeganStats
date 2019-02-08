@@ -72,6 +72,22 @@ import com.android.build.OutputFile
  * ]
  */
 
+ /* Near the top */
+
+import groovy.json.JsonSlurper
+
+def getNpmVersion() {
+    def inputFile = new File("../package.json")
+    def packageJson = new JsonSlurper().parseText(inputFile.text)
+    return packageJson["version"]
+}
+/* calculated from git commits to give sequential integers */
+def getGitVersion() {
+    def process = "git rev-list master --first-parent --count".execute()
+    return process.text.toInteger()
+}
+
+
 project.ext.react = [
     entryFile: "index.js"
 ]
@@ -110,6 +126,9 @@ project.logger.lifecycle('pass:' + pass)
  */
 def enableProguardInReleaseBuilds = false
 
+def userVer = getNpmVersion()
+def googleVer = getGitVersion()
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -118,8 +137,8 @@ android {
         applicationId "com.rebrandsoftware.veganstats"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode googleVer
+        versionName userVer
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
